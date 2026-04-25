@@ -13,8 +13,8 @@ export default function Home() {
     loadTasks();
   }, []);
 
-  const handleAddTask = (name: string, time: number | null) => {
-    addTask(name, time);
+  const handleAddTask = (name: string, time: number | null, place: string | null, lat: number | null, lng: number | null) => {
+    addTask(name, time, place, lat, lng, 100); // 100 meter radius
   };
 
   return (

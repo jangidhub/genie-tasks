@@ -58,13 +58,20 @@ export default function TaskItem({ task, onToggle, onDelete }: TaskProps) {
           </View>
           
           {/* Title */}
-          <Text 
-            className={`text-lg font-medium ${
-              task.isCompleted ? 'text-neutral-500 line-through' : 'text-white'
-            }`}
-          >
-            {task.name}
-          </Text>
+          <View className="flex-col">
+            <Text 
+              className={`text-lg font-medium ${
+                task.isCompleted ? 'text-neutral-500 line-through' : 'text-white'
+              }`}
+            >
+              {task.name}
+            </Text>
+            {task.latitude && (
+              <Text className="text-neutral-500 text-xs mt-0.5">
+                📍 {task.place || 'Location Set'}
+              </Text>
+            )}
+          </View>
         </TouchableOpacity>
 
         {/* Delete Button */}

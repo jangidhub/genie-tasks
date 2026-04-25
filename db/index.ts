@@ -25,4 +25,16 @@ export const initializeDatabase = () => {
   try {
     expoDb.execSync(`ALTER TABLE tasks ADD COLUMN expiresAt INTEGER;`);
   } catch (e) {}
+
+  try {
+    expoDb.execSync(`ALTER TABLE tasks ADD COLUMN latitude REAL;`);
+  } catch (e) {}
+
+  try {
+    expoDb.execSync(`ALTER TABLE tasks ADD COLUMN longitude REAL;`);
+  } catch (e) {}
+
+  try {
+    expoDb.execSync(`ALTER TABLE tasks ADD COLUMN radius INTEGER;`);
+  } catch (e) {}
 };

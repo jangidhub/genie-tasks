@@ -3,6 +3,8 @@ import { db } from '../db';
 import { tasks } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import * as Notifications from 'expo-notifications';
+import * as Location from 'expo-location';
+import * as TaskManager from 'expo-task-manager';
 
 export type Task = {
   id: number;
@@ -10,6 +12,9 @@ export type Task = {
   time: number | null;
   expiresAt: number | null;
   place: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  radius: number | null;
   notificationId: string | null;
   isCompleted: boolean;
 };
@@ -17,18 +22,45 @@ export type Task = {
 interface TaskState {
   tasks: Task[];
   loadTasks: () => Promise<void>;
-  addTask: (name: string, time?: number | null, place?: string | null) => Promise<void>;
+  addTask: (name: string, time?: number | null, place?: string | null, lat?: number | null, lng?: number | null, radius?: number | null) => Promise<void>;
   toggleTask: (id: number, isCompleted: boolean) => Promise<void>;
   deleteTask: (id: number) => Promise<void>;
 }
+
+const syncGeofences = async (tasksList: Task[]) => {
+  const activeRegions = tasksList
+    .filter(t => !t.isCompleted && t.latitude && t.longitude && t.radius)
+    .map(t => ({
+      identifier: `task_${t.id}`,
+      latitude: t.latitude as number,
+      longitude: t.longitude as number,
+      radius: t.radius as number,
+      notifyOnEnter: true,
+      notifyOnExit: false,
+    }));
+  
+  try {
+    if (activeRegions.length > 0) {
+      await Location.startGeofencingAsync('GENIE_GEOFENCE_TASK', activeRegions);
+    } else {
+      const hasTask = await TaskManager.isTaskRegisteredAsync('GENIE_GEOFENCE_TASK');
+      if (hasTask) {
+        await Location.stopGeofencingAsync('GENIE_GEOFENCE_TASK');
+      }
+    }
+  } catch (e) {
+    console.warn("Geofencing sync failed", e);
+  }
+};
 
 export const useTaskStore = create<TaskState>((set, get) => ({
   tasks: [],
   loadTasks: async () => {
     const allTasks = await db.select().from(tasks);
     set({ tasks: allTasks as Task[] });
+    syncGeofences(allTasks as Task[]);
   },
-  addTask: async (name, time = null, place = null) => {
+  addTask: async (name, time = null, place = null, lat = null, lng = null, radius = 100) => {
     let notificationId: string | null = null;
     let expiresAt: number | null = null;
 
@@ -55,11 +87,16 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       time,
       expiresAt,
       place,
+      latitude: lat,
+      longitude: lng,
+      radius: lat ? radius : null,
       notificationId,
       isCompleted: false,
     }).returning();
     
-    set((state) => ({ tasks: [...state.tasks, newTask as Task] }));
+    const newTasks = [...get().tasks, newTask as Task];
+    set({ tasks: newTasks });
+    syncGeofences(newTasks);
   },
   toggleTask: async (id, isCompleted) => {
     const task = get().tasks.find((t) => t.id === id);
@@ -77,9 +114,9 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       .set({ isCompleted })
       .where(eq(tasks.id, id));
       
-    set((state) => ({
-      tasks: state.tasks.map((t) => (t.id === id ? { ...t, isCompleted } : t)),
-    }));
+    const updatedTasks = get().tasks.map((t) => (t.id === id ? { ...t, isCompleted } : t));
+    set({ tasks: updatedTasks });
+    syncGeofences(updatedTasks);
   },
   deleteTask: async (id) => {
     const task = get().tasks.find((t) => t.id === id);
@@ -94,8 +131,8 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     }
 
     await db.delete(tasks).where(eq(tasks.id, id));
-    set((state) => ({
-      tasks: state.tasks.filter((t) => t.id !== id),
-    }));
+    const updatedTasks = get().tasks.filter((t) => t.id !== id);
+    set({ tasks: updatedTasks });
+    syncGeofences(updatedTasks);
   },
 }));
