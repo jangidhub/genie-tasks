@@ -28,7 +28,27 @@
     },
     "plugins": [
       "expo-router",
-      "expo-sqlite"
-    ]
+      "expo-sqlite",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Genie to use your location to trigger geofence alerts when the app is in the background.",
+          "locationAlwaysPermission": "Allow Genie to use your location to trigger geofence alerts when the app is in the background.",
+          "locationWhenInUsePermission": "Allow Genie to use your location to drop pins for tasks."
+        }
+      ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "0f751212-6638-4fd2-94f9-d9eded1b2f44"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/0f751212-6638-4fd2-94f9-d9eded1b2f44"
+    }
   }
 }

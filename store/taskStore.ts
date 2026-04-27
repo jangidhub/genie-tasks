@@ -41,7 +41,12 @@ const syncGeofences = async (tasksList: Task[]) => {
   
   try {
     if (activeRegions.length > 0) {
-      await Location.startGeofencingAsync('GENIE_GEOFENCE_TASK', activeRegions);
+      const { status } = await Location.requestBackgroundPermissionsAsync();
+      if (status === 'granted') {
+        await Location.startGeofencingAsync('GENIE_GEOFENCE_TASK', activeRegions);
+      } else {
+        console.warn("Background location permission denied");
+      }
     } else {
       const hasTask = await TaskManager.isTaskRegisteredAsync('GENIE_GEOFENCE_TASK');
       if (hasTask) {
