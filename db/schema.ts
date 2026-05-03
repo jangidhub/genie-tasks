@@ -10,5 +10,6 @@ export const tasks = sqliteTable('tasks', {
   longitude: real('longitude'),
   radius: integer('radius'), // Geofence radius in meters
   notificationId: text('notificationId'),
+  category: text('category'), // Category like Personal, Work, etc.
   isCompleted: integer('isCompleted', { mode: 'boolean' }).default(false).notNull(),
 });

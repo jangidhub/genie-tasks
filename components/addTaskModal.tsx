@@ -8,8 +8,10 @@ import MapPicker from './MapPicker';
 interface AddTaskModalProps {
   visible: boolean;
   onClose: () => void;
-  onAdd: (name: string, timeInMinutes: number | null, place: string | null, lat: number | null, lng: number | null) => void;
+  onAdd: (name: string, timeInMinutes: number | null, place: string | null, lat: number | null, lng: number | null, category: string | null) => void;
 }
+
+const CATEGORIES = ['Personal', 'Work', 'Shopping', 'Health', 'Errands'];
 
 const TIME_OPTIONS = [
   { label: 'None', value: null },
@@ -31,6 +33,7 @@ export default function AddTaskModal({ visible, onClose, onAdd }: AddTaskModalPr
   const [selectedMinutes, setSelectedMinutes] = useState('0');
   
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   // Location State
   const [showMap, setShowMap] = useState(false);
@@ -85,7 +88,7 @@ export default function AddTaskModal({ visible, onClose, onAdd }: AddTaskModalPr
         totalMinutes = selectedOption;
       }
       
-      onAdd(taskName.trim(), totalMinutes, selectedPlaceName, selectedLat, selectedLng);
+      onAdd(taskName.trim(), totalMinutes, selectedPlaceName, selectedLat, selectedLng, selectedCategory);
       
       // Reset State
       setTaskName('');
@@ -95,6 +98,7 @@ export default function AddTaskModal({ visible, onClose, onAdd }: AddTaskModalPr
       setSelectedPlaceName(null);
       setSelectedLat(null);
       setSelectedLng(null);
+      setSelectedCategory(null);
       onClose();
     }
   };
@@ -213,6 +217,30 @@ export default function AddTaskModal({ visible, onClose, onAdd }: AddTaskModalPr
               </Picker>
             </View>
           )}
+
+          <Text className="text-neutral-400 font-semibold mb-3 ml-1 uppercase tracking-wider text-xs mt-2">
+            Category (Optional)
+          </Text>
+          <View className="flex-row flex-wrap gap-2 mb-6">
+            {CATEGORIES.map((cat) => {
+              const isSelected = selectedCategory === cat;
+              return (
+                <TouchableOpacity
+                  key={cat}
+                  onPress={() => setSelectedCategory(isSelected ? null : cat)}
+                  className={`px-4 py-2 rounded-full border ${
+                    isSelected 
+                      ? 'bg-[#55BCF6] border-[#55BCF6]' 
+                      : 'bg-transparent border-neutral-600'
+                  }`}
+                >
+                  <Text className={`font-medium ${isSelected ? 'text-black' : 'text-neutral-300'}`}>
+                    {cat}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
 
           <TouchableOpacity
             className={`p-4 rounded-2xl items-center shadow-lg ${

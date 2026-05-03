@@ -16,13 +16,14 @@ export type Task = {
   longitude: number | null;
   radius: number | null;
   notificationId: string | null;
+  category: string | null;
   isCompleted: boolean;
 };
 
 interface TaskState {
   tasks: Task[];
   loadTasks: () => Promise<void>;
-  addTask: (name: string, time?: number | null, place?: string | null, lat?: number | null, lng?: number | null, radius?: number | null) => Promise<void>;
+  addTask: (name: string, time?: number | null, place?: string | null, lat?: number | null, lng?: number | null, radius?: number | null, category?: string | null) => Promise<void>;
   toggleTask: (id: number, isCompleted: boolean) => Promise<void>;
   deleteTask: (id: number) => Promise<void>;
 }
@@ -65,7 +66,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     set({ tasks: allTasks as Task[] });
     syncGeofences(allTasks as Task[]);
   },
-  addTask: async (name, time = null, place = null, lat = null, lng = null, radius = 100) => {
+  addTask: async (name, time = null, place = null, lat = null, lng = null, radius = 100, category = null) => {
     let notificationId: string | null = null;
     let expiresAt: number | null = null;
 
@@ -96,6 +97,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       longitude: lng,
       radius: lat ? radius : null,
       notificationId,
+      category,
       isCompleted: false,
     }).returning();
     
